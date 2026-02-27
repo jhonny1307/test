@@ -1,12 +1,10 @@
-# Ficha de RPG
+# Ficha do Personagem
 
-f[ ![Imagem do personagem](https://picsum.photos/200/300) ]||[ **Nome:** Aric  
-**Classe:** Guerreiro  
-**Nível:** 5 ]
+Texto normal aqui.
 
-[ **Inventário** ]||[ * Poção de cura  
-* Espada longa  
-* Escudo ]
+[ ![img](https://picsum.photos/200/300) ]||[
+**Nome:** Teste  
+**Classe:** Ocultista  
+]
 
-Mais texto normal...
-
+Texto depois.
