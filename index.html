@@ -1,122 +1,142 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt">
 <head>
-  <meta charset="UTF-8" />
-  <title>GFM Renderer</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Renderizador GFM com colunas</title>
+    <style>
+        /* Reset básico */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+        }
 
-  <!-- marked (GFM) -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+        /* Estilo para o container de colunas */
+        .gfm-columns {
+            display: flex;
+            gap: 5px;
+            margin: 5px 0;
+        }
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 24px;
-      background: #0f1115;
-      color: #e6edf3;
-    }
+        /* Cada coluna ocupa largura automática (conteúdo define) */
+        .gfm-col {
+            flex: 0 1 auto;
+            min-width: 0; /* Previne overflow de texto longo */
+        }
 
-    #app {
-      max-width: 900px;
-      margin: auto;
-    }
+        /* Versão com equalização de altura (f[]) */
+        .gfm-columns-f {
+            align-items: stretch; /* Garante que as colunas tenham a mesma altura */
+        }
 
-    /* layout lado a lado */
-    .md-side {
-      display: flex;
-      gap: 5px;
-      margin: 5px 0;
-      align-items: stretch;
-    }
+        .gfm-columns-f .gfm-col {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
 
-    .md-side > div {
-      flex: 1;
-      min-width: 0;
-    }
+        /* Imagens dentro da coluna equalizada devem se ajustar à altura disponível */
+        .gfm-columns-f .gfm-col img {
+            height: 100%;
+            width: auto;
+            max-width: 100%;
+            object-fit: contain;
+            display: block;
+        }
 
-    /* quando tem o f */
-    .force-match img,
-    .force-match video,
-    .force-match canvas {
-      height: 100%;
-      width: auto;
-      object-fit: contain;
-    }
+        /* Ajuste para outros elementos (ex: vídeos, iframes) */
+        .gfm-columns-f .gfm-col video,
+        .gfm-columns-f .gfm-col iframe {
+            max-height: 100%;
+            width: auto;
+        }
 
-    /* só pra não ficar feio */
-    img {
-      max-width: 100%;
-    }
-  </style>
+        /* Estilo opcional para diferenciar as colunas (remover se não quiser) */
+        .gfm-col {
+            padding: 4px;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+    </style>
+    <!-- Biblioteca marked para parse de Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
-  <div id="app">Carregando… segura a ansiedade.</div>
+    <div id="content">Carregando README.md...</div>
 
-  <script>
-    const app = document.getElementById("app");
+    <script>
+        (async function() {
+            try {
+                // Busca o arquivo README.md no mesmo diretório
+                const response = await fetch('README.md');
+                if (!response.ok) throw new Error('README.md não encontrado');
+                const markdown = await response.text();
 
-    // 🚫 remove títulos dentro dos blocos
-    function stripHeadings(md) {
-      return md.replace(/^#{1,6}\s.*$/gm, (m) => {
-        console.warn("Título bloqueado dentro de [ ]||[ ]:", m);
-        return m.replace(/^#{1,6}\s*/, "");
-      });
-    }
+                // Processa o markdown com a sintaxe especial
+                const html = await renderMarkdownWithColumns(markdown);
+                document.getElementById('content').innerHTML = html;
+            } catch (error) {
+                document.getElementById('content').innerHTML = `<p style="color:red">Erro: ${error.message}</p>`;
+            }
+        })();
 
-    // 🧠 parser da tua sintaxe cursed
-    function processSideBySide(md) {
-      const regex = /(^|\n)(f)?\[\s*([\s\S]*?)\s*\]\s*\|\|\s*\[\s*([\s\S]*?)\s*\]/g;
+        /**
+         * Função principal: substitui a sintaxe [x]||[y] e f[x]||[y] por colunas HTML.
+         * @param {string} markdown - Texto original do README.md
+         * @returns {Promise<string>} HTML final renderizado
+         */
+        async function renderMarkdownWithColumns(markdown) {
+            // Regex para capturar os blocos: 
+            // Grupo 1: 'f' opcional
+            // Grupo 2: conteúdo do primeiro bloco (entre [ e ])
+            // Grupo 3: conteúdo do segundo bloco (entre [ e ])
+            const regex = /(f?)\[\s*([\s\S]*?)\s*\]\|\|\s*\[\s*([\s\S]*?)\s*\]/g;
 
-      return md.replace(regex, (_, start, force, left, right) => {
-        left = stripHeadings(left);
-        right = stripHeadings(right);
+            const matches = [];
+            let match;
+            let placeholderIndex = 0;
 
-        const leftHTML = marked.parse(left);
-        const rightHTML = marked.parse(right);
+            // Primeiro, coletamos todos os matches e geramos placeholders
+            let textWithPlaceholders = markdown.replace(regex, (fullMatch, fFlag, leftContent, rightContent) => {
+                const placeholder = `@@@PLACEHOLDER_${placeholderIndex++}@@@`;
+                matches.push({
+                    placeholder,
+                    left: leftContent,
+                    right: rightContent,
+                    f: fFlag === 'f'
+                });
+                return placeholder;
+            });
 
-        return `
-<div class="md-side ${force ? "force-match" : ""}">
-  <div class="left">${leftHTML}</div>
-  <div class="right">${rightHTML}</div>
-</div>
-`;
-      });
-    }
+            // Converte o markdown restante (com placeholders) para HTML
+            let htmlWithPlaceholders = await marked.parse(textWithPlaceholders);
 
-    async function load() {
-      try {
-        const res = await fetch("README.md");
-        let md = await res.text();
+            // Agora processamos cada match: converte left/right para HTML e substitui o placeholder
+            for (const item of matches) {
+                // Converte os conteúdos dos blocos (cada um pode ter markdown)
+                const leftHtml = await marked.parse(item.left);
+                const rightHtml = await marked.parse(item.right);
 
-        // primeiro processa tua feature
-        md = processSideBySide(md);
+                // Cria o HTML das colunas
+                const columnsClass = item.f ? 'gfm-columns gfm-columns-f' : 'gfm-columns';
+                const columnsHtml = `
+                    <div class="${columnsClass}">
+                        <div class="gfm-col">${leftHtml}</div>
+                        <div class="gfm-col">${rightHtml}</div>
+                    </div>
+                `;
 
-        // depois renderiza o resto
-        const html = marked.parse(md);
+                // Substitui o placeholder no HTML final
+                htmlWithPlaceholders = htmlWithPlaceholders.replace(item.placeholder, columnsHtml);
+            }
 
-        app.innerHTML = html;
-
-        // 🔧 ajuste de altura quando tem f
-        document.querySelectorAll(".md-side.force-match").forEach(container => {
-          const left = container.children[0];
-          const right = container.children[1];
-
-          const resize = () => {
-            const h = right.offsetHeight;
-            left.style.height = h + "px";
-          };
-
-          resize();
-          window.addEventListener("load", resize);
-          window.addEventListener("resize", resize);
-        });
-
-      } catch (e) {
-        app.textContent = "Falhou miseravelmente ao carregar README.md";
-        console.error(e);
-      }
-    }
-
-    load();
-  </script>
+            return htmlWithPlaceholders;
+        }
+    </script>
 </body>
 </html>
