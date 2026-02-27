@@ -1,6 +1,6 @@
 # Ficha de RPG
 
-f[ ![Imagem do personagem](avatar.jpg) ]||[ **Nome:** Aric  
+f[ ![Imagem do personagem](https://picsum.photos/200/300) ]||[ **Nome:** Aric  
 **Classe:** Guerreiro  
 **Nível:** 5 ]
 
@@ -9,3 +9,4 @@ f[ ![Imagem do personagem](avatar.jpg) ]||[ **Nome:** Aric
 * Escudo ]
 
 Mais texto normal...
+
