@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Renderizador GFM com colunas</title>
-    <style>
-        /* Reset básico */
+      <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             line-height: 1.6;
@@ -16,31 +15,33 @@
             background: #fff;
         }
 
-        /* Estilo para o container de colunas */
         .gfm-columns {
             display: flex;
             gap: 5px;
             margin: 5px 0;
         }
 
-        /* Cada coluna ocupa largura automática (conteúdo define) */
         .gfm-col {
             flex: 0 1 auto;
-            min-width: 0; /* Previne overflow de texto longo */
+            min-width: 0;
         }
 
         /* Versão com equalização de altura (f[]) */
         .gfm-columns-f {
-            align-items: stretch; /* Garante que as colunas tenham a mesma altura */
+            align-items: stretch;
         }
 
         .gfm-columns-f .gfm-col {
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
         }
 
-        /* Imagens dentro da coluna equalizada devem se ajustar à altura disponível */
+        .gfm-columns-f .gfm-col > * {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
         .gfm-columns-f .gfm-col img {
             height: 100%;
             width: auto;
@@ -48,15 +49,15 @@
             object-fit: contain;
             display: block;
         }
-
-        /* Ajuste para outros elementos (ex: vídeos, iframes) */
+    
+        /* Ajuste para outros elementos (vídeos, iframes) */
         .gfm-columns-f .gfm-col video,
         .gfm-columns-f .gfm-col iframe {
             max-height: 100%;
             width: auto;
         }
 
-        /* Estilo opcional para diferenciar as colunas (remover se não quiser) */
+        /* Opcional: fundo para visualização */
         .gfm-col {
             padding: 4px;
             background: #f9f9f9;
@@ -140,3 +141,4 @@
     </script>
 </body>
 </html>
+
