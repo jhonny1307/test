@@ -1,14 +1,11 @@
-# Ficha
+# Ficha de RPG
 
-Texto normal.
+f[ ![Imagem do personagem](avatar.jpg) ]||[ **Nome:** Aric  
+**Classe:** Guerreiro  
+**Nível:** 5 ]
 
-[ **Nome:** Jhonny ]||[ ![img](https://placehold.co/200x300) ]
+[ **Inventário** ]||[ * Poção de cura  
+* Espada longa  
+* Escudo ]
 
-Outro texto.
-
-f[ ![img](https://placehold.co/200x100) ]||[  
-**Status**
-
-- HP: 10  
-- MP: 5  
-]
+Mais texto normal...
