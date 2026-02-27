@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>GFM Renderer</title>
+
+  <!-- marked (GFM) -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 24px;
+      background: #0f1115;
+      color: #e6edf3;
+    }
+
+    #app {
+      max-width: 900px;
+      margin: auto;
+    }
+
+    /* layout lado a lado */
+    .md-side {
+      display: flex;
+      gap: 5px;
+      margin: 5px 0;
+      align-items: stretch;
+    }
+
+    .md-side > div {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* quando tem o f */
+    .force-match img,
+    .force-match video,
+    .force-match canvas {
+      height: 100%;
+      width: auto;
+      object-fit: contain;
+    }
+
+    /* só pra não ficar feio */
+    img {
+      max-width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">Carregando… segura a ansiedade.</div>
+
+  <script>
+    const app = document.getElementById("app");
+
+    // 🚫 remove títulos dentro dos blocos
+    function stripHeadings(md) {
+      return md.replace(/^#{1,6}\s.*$/gm, (m) => {
+        console.warn("Título bloqueado dentro de [ ]||[ ]:", m);
+        return m.replace(/^#{1,6}\s*/, "");
+      });
+    }
+
+    // 🧠 parser da tua sintaxe cursed
+    function processSideBySide(md) {
+      const regex = /(^|\n)(f)?\[\s*([\s\S]*?)\s*\]\s*\|\|\s*\[\s*([\s\S]*?)\s*\]/g;
+
+      return md.replace(regex, (_, start, force, left, right) => {
+        left = stripHeadings(left);
+        right = stripHeadings(right);
+
+        const leftHTML = marked.parse(left);
+        const rightHTML = marked.parse(right);
+
+        return `
+<div class="md-side ${force ? "force-match" : ""}">
+  <div class="left">${leftHTML}</div>
+  <div class="right">${rightHTML}</div>
+</div>
+`;
+      });
+    }
+
+    async function load() {
+      try {
+        const res = await fetch("README.md");
+        let md = await res.text();
+
+        // primeiro processa tua feature
+        md = processSideBySide(md);
+
+        // depois renderiza o resto
+        const html = marked.parse(md);
+
+        app.innerHTML = html;
+
+        // 🔧 ajuste de altura quando tem f
+        document.querySelectorAll(".md-side.force-match").forEach(container => {
+          const left = container.children[0];
+          const right = container.children[1];
+
+          const resize = () => {
+            const h = right.offsetHeight;
+            left.style.height = h + "px";
+          };
+
+          resize();
+          window.addEventListener("load", resize);
+          window.addEventListener("resize", resize);
+        });
+
+      } catch (e) {
+        app.textContent = "Falhou miseravelmente ao carregar README.md";
+        console.error(e);
+      }
+    }
+
+    load();
+  </script>
+</body>
+</html>
